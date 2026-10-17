@@ -1,25 +1,24 @@
-/* 
-This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-If a copy of the MPL was not distributed with this file, 
-You can obtain one at https://mozilla.org/MPL/2.0/. 
+/*
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+If a copy of the MPL was not distributed with this file,
+You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 //! Identifiers for key types.
-//! 
-//! These are, broadly speaking, simple newtype wrappers whose main purpose is to 
-//! future-proof the library and allow for the implementations of assorted Traits 
+//!
+//! These are, broadly speaking, simple newtype wrappers whose main purpose is to
+//! future-proof the library and allow for the implementations of assorted Traits
 //! that will not 'leak' into the underlying, wrapped type.
-//! 
-//! Barring exceptional circumstances, all identifiers will be cheap and easy to 
+//!
+//! Barring exceptional circumstances, all identifiers will be cheap and easy to
 //! convert into at least a reference to their respective underlying types.
 
 use core::borrow::Borrow;
 
 use bevy::prelude::*;
-use bevy::reflect::{Reflect};
+use bevy::reflect::Reflect;
 
 #[cfg(any(feature = "actionset_loader"))]
-use serde::{Serialize, Deserialize};
-
+use serde::{Deserialize, Serialize};
 
 #[derive(Reflect, Clone, Debug, Hash, PartialEq, Eq)]
 #[cfg_attr(any(feature = "actionset_loader"), derive(Serialize, Deserialize))]
@@ -62,7 +61,6 @@ impl Borrow<String> for &ContextFetcherIdentifier {
     }
 }
 
-
 #[derive(Reflect, Clone, Debug, Hash, PartialEq, Eq)]
 #[cfg_attr(any(feature = "actionset_loader"), derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "actionset_loader"), serde(transparent))]
@@ -104,12 +102,10 @@ impl Borrow<String> for &CurveIdentifier {
     }
 }
 
-
 #[derive(Reflect, Clone, Debug, Hash, PartialEq, Eq)]
 #[cfg_attr(any(feature = "actionset_loader"), derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "actionset_loader"), serde(transparent))]
 pub struct ConsiderationIdentifier(String);
-
 
 impl ConsiderationIdentifier {
     pub fn from_string(value: String) -> Self {

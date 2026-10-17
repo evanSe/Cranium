@@ -1,7 +1,7 @@
-/* 
-This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-If a copy of the MPL was not distributed with this file, 
-You can obtain one at https://mozilla.org/MPL/2.0/. 
+/*
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+If a copy of the MPL was not distributed with this file,
+You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
 //! The values used by the Action Runtime to track the state of AI Actions.
@@ -9,53 +9,52 @@ You can obtain one at https://mozilla.org/MPL/2.0/.
 use bevy::prelude::*;
 use bevy::{platform::collections::Equivalent, reflect::Reflect};
 
-use crate::{types, action_runtime::ActionTrackerState};
+use crate::{action_runtime::ActionTrackerState, types};
 
 #[cfg(any(feature = "actionset_loader"))]
 use serde::{Deserialize, Serialize};
 
-/// A lifecycle marker for ActionTrackers to indicate what the status of the tracked Action is. 
-/// 
+/// A lifecycle marker for ActionTrackers to indicate what the status of the tracked Action is.
+///
 /// This is a state machine, more or less, with three layers:
 /// 1) Initial
 /// 2) Progressed
 /// 3) Terminal
-/// 
+///
 /// *As a general rule*, the progression through those layers should be non-increasing, i.e.:
-/// - Terminal States should never change at all once reached, 
+/// - Terminal States should never change at all once reached,
 /// - Progressed states should only become Terminal or different Progressed States, and
 /// - Initial states can become any other State.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Reflect)]
 #[cfg_attr(any(feature = "actionset_loader"), derive(Serialize, Deserialize))]
 pub enum ActionState {
-    // Note that we are NOT implementing Default for this on purpose; 
+    // Note that we are NOT implementing Default for this on purpose;
     // the default state is domain-specific (though probably just Ready most of the time).
-
     /// Initial state. Planned but not started and cannot start yet - waiting on something (likely other Actions).
-    Queued, 
+    Queued,
     /// Initial state. Can start now, hadn't done literally anything yet though.
-    Ready, 
-    
+    Ready,
+
     /// Progressed state. Started but didn't finish yet, will continue.
-    Running, 
+    Running,
     /// Progressed state. Started and can continue, but has been put on hold for now.
-    Paused, 
-    
+    Paused,
+
     /// Terminal state. Did all it was supposed to and is no longer needed, yaaay.
-    Succeeded, 
-    
-    /// Terminal state. 
-    /// We gave up due to getting stuck/timeout/etc., naaay. 
-    /// Generally implies the action should not be retried as-is 
+    Succeeded,
+
+    /// Terminal state.
+    /// We gave up due to getting stuck/timeout/etc., naaay.
+    /// Generally implies the action should not be retried as-is
     /// and may trigger failure callbacks.
-    Failed, 
-    
-    /// Terminal state. 
-    /// We gave up because of an 'external' decision that we should, 
-    /// and NOT because something was wrong with the execution. 
-    /// The Action may well be still valid, we just stopped pursuing it. 
-    /// You can think of it as 'Paused, but forever'. 
-    Cancelled, 
+    Failed,
+
+    /// Terminal state.
+    /// We gave up because of an 'external' decision that we should,
+    /// and NOT because something was wrong with the execution.
+    /// The Action may well be still valid, we just stopped pursuing it.
+    /// You can think of it as 'Paused, but forever'.
+    Cancelled,
 }
 
 impl ActionState {
@@ -103,15 +102,13 @@ impl Equivalent<ActionState> for &ActionState {
     }
 }
 
-
-/// 
+///
 #[derive(Message)]
 pub struct AiActionStateChangeRequest {
     pub entity: Entity,
     pub action: types::ActionKey,
     pub to_state: crate::action_state::ActionState,
 }
-
 
 /// Signals that an Action has transitioned between two states: from_state -> to_state.
 #[derive(EntityEvent)]
@@ -122,7 +119,7 @@ pub struct AiActionStateChange {
     pub to_state: crate::action_state::ActionState,
 }
 
-/// A System that processes all pending AiActionStateChangeRequest and applies them. 
+/// A System that processes all pending AiActionStateChangeRequest and applies them.
 /// Can be scheduled as a System or (via `action_state_update_handler_observer()`) as an Observer.
 pub fn action_state_update_handler(
     mut request_reader: MessageReader<AiActionStateChangeRequest>,
@@ -139,45 +136,57 @@ pub fn action_state_update_handler(
                 match commands.get_entity(msg.entity) {
                     Err(err) => {
                         #[cfg(feature = "logging")]
-                        bevy::log::error!("{:?}: AI {:?} does not exist??? - {:?}", &msg.action, msg.entity, err);
+                        bevy::log::error!(
+                            "{:?}: AI {:?} does not exist??? - {:?}",
+                            &msg.action,
+                            msg.entity,
+                            err
+                        );
                     }
                     Ok(mut cmds) => {
                         #[cfg(feature = "logging")]
-                        bevy::log::debug!("{:?}: Inserting new ActionState for AI {:?} - {:?}", &msg.action, msg.entity, &msg.to_state);
+                        bevy::log::debug!(
+                            "{:?}: Inserting new ActionState for AI {:?} - {:?}",
+                            &msg.action,
+                            msg.entity,
+                            &msg.to_state
+                        );
                         cmds.trigger(|ent| AiActionStateChange {
                             action: msg.action.clone(),
                             entity: ent,
-                            from_state: None, 
+                            from_state: None,
                             to_state: msg.to_state.clone(),
                         });
                         cmds.insert(ActionTrackerState(msg.to_state));
                     }
                 }
             }
-            Ok(mut state) => { 
+            Ok(mut state) => {
                 #[cfg(feature = "logging")]
-                bevy::log::debug!("example_action for AI {:?}: Updating the state to new value {:?}", msg.entity, msg.to_state);
+                bevy::log::debug!(
+                    "example_action for AI {:?}: Updating the state to new value {:?}",
+                    msg.entity,
+                    msg.to_state
+                );
                 let current = state.get_state().clone();
                 commands.trigger(AiActionStateChange {
                     action: msg.action.clone(),
                     entity: msg.entity,
-                    from_state: Some(current), 
+                    from_state: Some(current),
                     to_state: msg.to_state.clone(),
                 });
                 state.set_state(msg.to_state);
-            },
+            }
         }
     });
 }
 
-
-/// An event that 
+/// An event that
 #[derive(Event)]
 pub struct ProcessActionStateUpdatesSignal;
 
-
-/// An Observer wrapper for `action_state_update_handler()`, triggered by ProcessActionStateUpdatesSignal. 
-/// Can be used as a 'sparse' replacement for normal Schedule-based processing or in parallel to it as a 
+/// An Observer wrapper for `action_state_update_handler()`, triggered by ProcessActionStateUpdatesSignal.
+/// Can be used as a 'sparse' replacement for normal Schedule-based processing or in parallel to it as a
 /// way to force a flush of the buffered AiActionStateChangeRequests.
 pub fn action_state_update_handler_observer(
     _trigger: On<ProcessActionStateUpdatesSignal>,
@@ -188,15 +197,15 @@ pub fn action_state_update_handler_observer(
     action_state_update_handler(request_reader, tracker_state_qry, commands);
 }
 
-
 pub struct ActionStateUpdatesPlugin;
 
 impl Plugin for ActionStateUpdatesPlugin {
     fn build(&self, app: &mut App) {
-        app
-        .add_message::<AiActionStateChangeRequest>()
-        .add_observer(action_state_update_handler_observer)
-        .add_systems(FixedUpdate, crate::action_state::action_state_update_handler)
-        ;
+        app.add_message::<AiActionStateChangeRequest>()
+            .add_observer(action_state_update_handler_observer)
+            .add_systems(
+                FixedUpdate,
+                crate::action_state::action_state_update_handler,
+            );
     }
 }

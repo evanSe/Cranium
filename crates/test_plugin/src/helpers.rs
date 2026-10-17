@@ -1,13 +1,12 @@
-/* 
-This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-If a copy of the MPL was not distributed with this file, 
-You can obtain one at https://mozilla.org/MPL/2.0/. 
+/*
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+If a copy of the MPL was not distributed with this file,
+You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 use cranium_core::bevy::prelude::*;
 use cranium_core::*;
 
-
-/// Helper for triggering AppExit. 
+/// Helper for triggering AppExit.
 /// If True, we have actually despawned at least one tracker.
 /// This is needed so we don't stop BEFORE any trackers are created.
 #[derive(Resource)]
@@ -19,11 +18,11 @@ impl Default for DespawnedAnyActionTrackers {
     }
 }
 
-/// Helper for triggering AppExit. 
+/// Helper for triggering AppExit.
 /// Updates the DespawnedAnyActionTrackers on a despawn.
 pub fn mark_despawn_occurred(
     _trigger: On<action_runtime::ActionTrackerDespawnRequested>,
-    mut marker: ResMut<DespawnedAnyActionTrackers>
+    mut marker: ResMut<DespawnedAnyActionTrackers>,
 ) {
     marker.0 = true;
 }

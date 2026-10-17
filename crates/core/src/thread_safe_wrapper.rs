@@ -1,42 +1,44 @@
-/* 
-This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-If a copy of the MPL was not distributed with this file, 
-You can obtain one at https://mozilla.org/MPL/2.0/. 
+/*
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+If a copy of the MPL was not distributed with this file,
+You can obtain one at https://mozilla.org/MPL/2.0/.
 */
-//! An abstraction over whatever thread-safe shared pointer type (i.e. Arc<T>-like) 
-//! the library has decided to use. 
-//! 
-//! This is used by Cranium for any possibly-parallel scenario where we need 
+//! An abstraction over whatever thread-safe shared pointer type (i.e. Arc<T>-like)
+//! the library has decided to use.
+//!
+//! This is used by Cranium for any possibly-parallel scenario where we need
 //! cheap clone()s or dynamic dispatch, e.g. for registering user `Systems`.
-//! 
-//! The backing library's datatype should be treated as a hidden implementation detail 
+//!
+//! The backing library's datatype should be treated as a hidden implementation detail
 //! for the overwhelming majority of possible purposes.
 use bevy::platform::sync::Arc;
 
 /// The underlying 'backend' type for ThreadSafeRef
 type ThreadSafeRefValue<T> = Arc<T>;
 
-/// An abstraction over whatever thread-safe shared pointer type (i.e. [`Arc<T>`]-like) 
+/// An abstraction over whatever thread-safe shared pointer type (i.e. [`Arc<T>`]-like)
 /// the library has decided to use.
-/// 
-/// This is used by Cranium for any possibly-parallel scenario where we need 
+///
+/// This is used by Cranium for any possibly-parallel scenario where we need
 /// cheap clone()s or dynamic dispatch, e.g. for registering user `Systems`.
-/// 
-/// The backing library's datatype should be treated as a hidden implementation detail 
+///
+/// The backing library's datatype should be treated as a hidden implementation detail
 /// for the overwhelming majority of possible purposes.
-/// 
-/// Note that this type does NOT provide weakrefs (e.g. [`alloc::sync::Weak`])! 
-/// 
+///
+/// Note that this type does NOT provide weakrefs (e.g. [`alloc::sync::Weak`])!
+///
 /// Any abstracted weakrefs used by the library will be provided separately, if at all.
 #[derive(Debug, Hash, Default, bevy::reflect::Reflect)]
 pub struct ThreadSafeRef<T: ?Sized> {
-    wrapped: ThreadSafeRefValue<T>
+    wrapped: ThreadSafeRefValue<T>,
 }
 
 impl<T> ThreadSafeRef<T> {
     #[inline]
     pub fn new(val: T) -> Self {
-        Self { wrapped: Arc::new(val) }
+        Self {
+            wrapped: Arc::new(val),
+        }
     }
 }
 

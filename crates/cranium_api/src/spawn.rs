@@ -1,10 +1,10 @@
-/* 
-This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-If a copy of the MPL was not distributed with this file, 
-You can obtain one at https://mozilla.org/MPL/2.0/. 
+/*
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+If a copy of the MPL was not distributed with this file,
+You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 // Needed in-scope for insert_reflect() call
-use cranium_core::bevy::ecs::reflect::{ReflectCommandExt};
+use cranium_core::bevy::ecs::reflect::ReflectCommandExt;
 use cranium_core::bevy::platform::collections::HashMap;
 
 use cranium_core::bevy::platform::sync::Arc;
@@ -12,16 +12,16 @@ use cranium_core::bevy::platform::sync::Arc;
 use cranium_core::bevy::prelude::*;
 
 use cranium_core::bevy::log;
-use cranium_core::bevy::reflect::{
-    serde::TypedReflectDeserializer,
-};
+use cranium_core::bevy::reflect::serde::TypedReflectDeserializer;
 
 use cranium_ffi::{HostIdType, HostMapped, NativeHostIdType, RequestKey};
-use serde_json::Value;
 use serde::de::DeserializeSeed;
+use serde_json::Value;
 
-use crate::channels::{EntityToHostIdRegistry, HostEntityRemovalTriggered, HostEntityRequestRemovalMessage, HostIdToEntityRegistry, QueuedApiOutMessage};
-
+use crate::channels::{
+    EntityToHostIdRegistry, HostEntityRemovalTriggered, HostEntityRequestRemovalMessage,
+    HostIdToEntityRegistry, QueuedApiOutMessage,
+};
 
 // Shamelessly, uh, 'borrowed', from Bevy's own source code with
 // some possible modifications to suit the needs of this project.
@@ -35,12 +35,12 @@ fn deserialize_components(
     let mut reflect_components = vec![];
 
     for (component_path, component) in components {
-        let Some(component_type) = 
-            type_registry.get_with_short_type_path(&component_path) 
-                .or_else(|| {type_registry.get_with_type_path(&component_path)})
-            else {
-                return Err(format!("Unknown component type: `{}`", component_path));
-            };
+        let Some(component_type) = type_registry
+            .get_with_short_type_path(&component_path)
+            .or_else(|| type_registry.get_with_type_path(&component_path))
+        else {
+            return Err(format!("Unknown component type: `{}`", component_path));
+        };
         let reflected: Box<dyn PartialReflect> =
             TypedReflectDeserializer::new(component_type, type_registry)
                 .deserialize(&component)
@@ -51,7 +51,7 @@ fn deserialize_components(
     Ok(reflect_components)
 }
 
-// Likewise, this function also fell off the back of a lorry, officer, crazy story. 
+// Likewise, this function also fell off the back of a lorry, officer, crazy story.
 // (credit: https://github.com/bevyengine/bevy/blob/0eac08ae5da33f39d64ad148740c34c14b38c481/crates/bevy_remote/src/builtin_methods.rs#L1947)
 /// Given a collection `reflect_components` of reflected component values, insert them into
 /// the given entity (`entity_world_mut`).
@@ -71,7 +71,7 @@ fn insert_reflected_components(
 pub struct HostSpawnRequestParams(HashMap<String, Value>);
 
 /// This represents queueing up a HostMapped entity for resolution and update/insert of Components
-/// based on the results (i.e. - if we already track this Host ID -> update, else insert). 
+/// based on the results (i.e. - if we already track this Host ID -> update, else insert).
 #[derive(Debug, Message)]
 pub struct HostSpawnRequestMsg<I: HostIdType> {
     pub payload: Arc<String>,
@@ -98,12 +98,12 @@ pub struct HostSpawnResponseErrorMsg<I: HostIdType> {
 
 // Completing the unholy trinity of copypasta, the actual handler using both of the above.
 // (https://github.com/bevyengine/bevy/blob/0eac08ae5da33f39d64ad148740c34c14b38c481/crates/bevy_remote/src/builtin_methods.rs#L1908)
-// This is the most customized of the three, barely bearing any similarity to the original. 
-// Rather than operating on exclusive World access, we use good ol' Commands for this, 
+// This is the most customized of the three, barely bearing any similarity to the original.
+// Rather than operating on exclusive World access, we use good ol' Commands for this,
 // and simply process Messages (inbound and outbound).
 pub fn process_remote_spawn_entity_request<I: HostIdType + 'static>(
     app_type_registry: Res<AppTypeRegistry>,
-    real_timer: Res<Time<Real>>, 
+    real_timer: Res<Time<Real>>,
     mut request_stream: MessageReader<HostSpawnRequestMsg<I>>,
     mut success_response_stream: MessageWriter<HostSpawnResponseSuccessMsg<I>>,
     mut error_response_stream: MessageWriter<HostSpawnResponseErrorMsg<I>>,
@@ -263,46 +263,44 @@ pub fn process_remote_spawn_entity_request<I: HostIdType + 'static>(
     success_response_stream.write_batch(success_messages);
 }
 
-
 /// Queues up successful Spawn responses as messages to push out to the output channel.
 pub(crate) fn forward_spawn_success_signals(
     mut success_messages: MessageReader<HostSpawnResponseSuccessMsg<NativeHostIdType>>,
-    mut message_queue: MessageWriter<QueuedApiOutMessage>, 
+    mut message_queue: MessageWriter<QueuedApiOutMessage>,
 ) {
-    let transformed_msgs = success_messages
-        .read()
-        .map(|msg| {
-            let out_msg = cranium_ffi::StagedApiOutMsg::EntitySpawnSuccessful(
-                msg.host_id.clone(), 
-                msg.request_key.clone(),
-            );
-            #[cfg(feature = "logging")]
-            log::debug!("Queuing up a EntitySpawnSuccessful Message for output channel send: {:?}", out_msg);
-            QueuedApiOutMessage(out_msg)
-        }
-    );
+    let transformed_msgs = success_messages.read().map(|msg| {
+        let out_msg = cranium_ffi::StagedApiOutMsg::EntitySpawnSuccessful(
+            msg.host_id.clone(),
+            msg.request_key.clone(),
+        );
+        #[cfg(feature = "logging")]
+        log::debug!(
+            "Queuing up a EntitySpawnSuccessful Message for output channel send: {:?}",
+            out_msg
+        );
+        QueuedApiOutMessage(out_msg)
+    });
     message_queue.write_batch(transformed_msgs);
 }
-
 
 /// Queues up error Spawn responses as messages to push out to the output channel.
 pub(crate) fn forward_spawn_error_signals(
     mut success_messages: MessageReader<HostSpawnResponseErrorMsg<NativeHostIdType>>,
-    mut message_queue: MessageWriter<QueuedApiOutMessage>, 
+    mut message_queue: MessageWriter<QueuedApiOutMessage>,
 ) {
-    let transformed_msgs = success_messages
-        .read()
-        .map(|msg| {
-            let out_msg = cranium_ffi::StagedApiOutMsg::EntitySpawnError(
-                msg.host_id.clone(),
-                msg.request_key.clone(),
-                msg.error.clone(),
-            );
-            #[cfg(feature = "logging")]
-            log::debug!("Queuing up a EntitySpawnError Message for output channel send: {:?}", out_msg);
-            QueuedApiOutMessage(out_msg)
-        }
-    );
+    let transformed_msgs = success_messages.read().map(|msg| {
+        let out_msg = cranium_ffi::StagedApiOutMsg::EntitySpawnError(
+            msg.host_id.clone(),
+            msg.request_key.clone(),
+            msg.error.clone(),
+        );
+        #[cfg(feature = "logging")]
+        log::debug!(
+            "Queuing up a EntitySpawnError Message for output channel send: {:?}",
+            out_msg
+        );
+        QueuedApiOutMessage(out_msg)
+    });
     message_queue.write_batch(transformed_msgs);
 }
 
@@ -323,47 +321,44 @@ pub struct HostDespawnResponseErrorMsg<I: HostIdType> {
     pub request_key: RequestKey,
 }
 
-pub(crate) fn host_entity_removal_request_processor<T: HostIdType + 'static> (
-    mapping_registry: Res<HostIdToEntityRegistry<T>>, 
+pub(crate) fn host_entity_removal_request_processor<T: HostIdType + 'static>(
+    mapping_registry: Res<HostIdToEntityRegistry<T>>,
     mut msg_reader: MessageReader<HostEntityRequestRemovalMessage<T>>,
     mut msg_writer: MessageWriter<HostEntityRemovalTriggered>,
     mut err_writer: MessageWriter<HostDespawnResponseErrorMsg<T>>,
 ) {
-    let removals = msg_reader.read_with_id().filter_map(
-        |(msg, msg_id)| {
-            #[cfg(feature = "logging")]
-            log::debug!(
-                "Processing HostEntityRequestRemovalMessage (ID: {:?}) - Target: {:?}",
-                msg_id,
-                msg.target_host_id
-            );
-            mapping_registry.0
-                .get(&msg.target_host_id)
-                .or_else(|| {
-                    err_writer.write(HostDespawnResponseErrorMsg { 
-                        host_id: Some(msg.target_host_id.clone()), 
-                        error: Arc::new("Target entity does not exist!\0".to_string()), 
-                        request_key: msg.request_key, 
-                    });
-                    None
-                }
-            )
-            .map(|entity| HostEntityRemovalTriggered { 
+    let removals = msg_reader.read_with_id().filter_map(|(msg, msg_id)| {
+        #[cfg(feature = "logging")]
+        log::debug!(
+            "Processing HostEntityRequestRemovalMessage (ID: {:?}) - Target: {:?}",
+            msg_id,
+            msg.target_host_id
+        );
+        mapping_registry
+            .0
+            .get(&msg.target_host_id)
+            .or_else(|| {
+                err_writer.write(HostDespawnResponseErrorMsg {
+                    host_id: Some(msg.target_host_id.clone()),
+                    error: Arc::new("Target entity does not exist!\0".to_string()),
+                    request_key: msg.request_key,
+                });
+                None
+            })
+            .map(|entity| HostEntityRemovalTriggered {
                 entity: *entity,
                 request_key: msg.request_key,
             })
-        }
-    );
+    });
 
     msg_writer.write_batch(removals);
 }
 
-
-/// The System counterpart of HostEntityRemovalTriggered Messages. 
+/// The System counterpart of HostEntityRemovalTriggered Messages.
 /// Handles the core job of that Message - despawning HostMapped entities
-pub(crate) fn host_entity_removal_executor<T: HostIdType + 'static> (
+pub(crate) fn host_entity_removal_executor<T: HostIdType + 'static>(
     mut msg_reader: MessageReader<HostEntityRemovalTriggered>,
-    mut commands: Commands, 
+    mut commands: Commands,
     mut from_hostmapping: ResMut<HostIdToEntityRegistry<T>>,
     mut to_hostmapping: ResMut<EntityToHostIdRegistry<T>>,
     mut success_msg_writer: MessageWriter<HostDespawnResponseSuccessMsg<T>>,
@@ -435,48 +430,50 @@ pub(crate) fn host_entity_removal_executor<T: HostIdType + 'static> (
     success_msg_writer.write_batch(msgs);
 }
 
-
 /// Queues up successful Spawn responses as messages to push out to the output channel.
 pub(crate) fn forward_despawn_success_signals(
     mut success_messages: MessageReader<HostDespawnResponseSuccessMsg<NativeHostIdType>>,
-    mut message_queue: MessageWriter<QueuedApiOutMessage>, 
+    mut message_queue: MessageWriter<QueuedApiOutMessage>,
 ) {
-    let transformed_msgs = success_messages
-        .read()
-        .map(|msg| {
-            let out_msg = cranium_ffi::StagedApiOutMsg::EntityDespawnSuccessful(
-                msg.host_id.clone().into(),
-                msg.request_key
+    let transformed_msgs = success_messages.read().map(|msg| {
+        let out_msg = cranium_ffi::StagedApiOutMsg::EntityDespawnSuccessful(
+            msg.host_id.clone().into(),
+            msg.request_key,
+        );
+        #[cfg(feature = "logging")]
+        {
+            log::info!(
+                "Successfully despawned Entity {:?} - {:?}",
+                msg.entity,
+                msg.comments
             );
-            #[cfg(feature = "logging")]
-            {
-                log::info!("Successfully despawned Entity {:?} - {:?}", msg.entity, msg.comments);
-                log::debug!("Queuing up a EntityDespawnSuccessful Message for output channel send: {:?}", out_msg);
-            }
-            QueuedApiOutMessage(out_msg)
+            log::debug!(
+                "Queuing up a EntityDespawnSuccessful Message for output channel send: {:?}",
+                out_msg
+            );
         }
-    );
+        QueuedApiOutMessage(out_msg)
+    });
     message_queue.write_batch(transformed_msgs);
 }
-
 
 /// Queues up error Spawn responses as messages to push out to the output channel.
 pub(crate) fn forward_despawn_error_signals(
     mut err_messages: MessageReader<HostDespawnResponseErrorMsg<NativeHostIdType>>,
-    mut message_queue: MessageWriter<QueuedApiOutMessage>, 
+    mut message_queue: MessageWriter<QueuedApiOutMessage>,
 ) {
-    let transformed_msgs = err_messages
-        .read()
-        .map(|msg| {
-            let out_msg = cranium_ffi::StagedApiOutMsg::EntityDespawnError(
-                msg.host_id.clone().into(),
-                msg.request_key, 
-                msg.error.clone(), 
-            );
-            #[cfg(feature = "logging")]
-            log::debug!("Queuing up a EntitySpawnError Message for output channel send: {:?}", out_msg);
-            QueuedApiOutMessage(out_msg)
-        }
-    );
+    let transformed_msgs = err_messages.read().map(|msg| {
+        let out_msg = cranium_ffi::StagedApiOutMsg::EntityDespawnError(
+            msg.host_id.clone().into(),
+            msg.request_key,
+            msg.error.clone(),
+        );
+        #[cfg(feature = "logging")]
+        log::debug!(
+            "Queuing up a EntitySpawnError Message for output channel send: {:?}",
+            out_msg
+        );
+        QueuedApiOutMessage(out_msg)
+    });
     message_queue.write_batch(transformed_msgs);
 }

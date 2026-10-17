@@ -1,12 +1,12 @@
-/* 
-This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-If a copy of the MPL was not distributed with this file, 
-You can obtain one at https://mozilla.org/MPL/2.0/. 
+/*
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+If a copy of the MPL was not distributed with this file,
+You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 //! Type aliases and 'abstracting' newtypes.
 
-// NOTE: Some of the feature-branches may resolve to the same types. 
-//       This is deliberate; it leaves room for changing implementations later, 
+// NOTE: Some of the feature-branches may resolve to the same types.
+//       This is deliberate; it leaves room for changing implementations later,
 //       e.g. for cases where a std-only library can be used as an optimization in an std env.
 
 use bevy::platform::prelude::String;
@@ -16,7 +16,7 @@ pub use crate::thread_safe_wrapper::ThreadSafeRef;
 #[cfg(all(feature = "std", not(feature = "nostd_support")))]
 mod std_types {
     extern crate std;
-    
+
     /// A standardized Cranium type for Read-Write Locks (i.e. std::sync::RwLock<T> or similar)
     pub type CraniumRwLock<T> = bevy::platform::sync::RwLock<T>;
 
@@ -29,7 +29,7 @@ mod std_types {
 
 #[cfg(all(any(feature = "nostd_support")))]
 mod nostd_types {
-    //! std-free implementations 
+    //! std-free implementations
     /// A standardized Cranium type for Read-Write Locks (i.e. std::sync::RwLock<T> or similar)
     pub type CraniumRwLock<T> = bevy::platform::sync::RwLock<T>;
 
@@ -40,20 +40,20 @@ mod nostd_types {
     pub type CraniumKvMap<K, V> = bevy::platform::collections::HashMap<K, V>;
 }
 
-// If nostd_support is enabled, it takes precedence over std. 
-// This is to ensure that libs downstream that build for maybe-no_std 
+// If nostd_support is enabled, it takes precedence over std.
+// This is to ensure that libs downstream that build for maybe-no_std
 // using both features don't get a surprise std-only datastructure.
 #[cfg(all(feature = "std", not(feature = "nostd_support")))]
-pub use std_types::*;  
+pub use std_types::*;
 
 #[cfg(feature = "nostd_support")]
 pub use nostd_types::*;
 
-/// 
+///
 pub type ContextFetcherKey = crate::identifiers::ContextFetcherIdentifier;
 pub type UtilityCurveKey = String;
 
-/// Type alias to make it easier to switch out what datatypes are used for Actions. 
+/// Type alias to make it easier to switch out what datatypes are used for Actions.
 /// Action Keys are effectively IDs, so they do not need to be human-readable.
 pub type ActionKey = String;
 

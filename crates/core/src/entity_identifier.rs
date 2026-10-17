@@ -1,15 +1,15 @@
-/* 
-This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-If a copy of the MPL was not distributed with this file, 
-You can obtain one at https://mozilla.org/MPL/2.0/. 
+/*
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+If a copy of the MPL was not distributed with this file,
+You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
 //! Wrapper for Entities to display them more nicely, mainly for logging purposes.
 
-use bevy::platform::prelude::{String};
+use bevy::platform::prelude::String;
 
 /// A convenient type wrapping Entity with an optional Name.
-/// Acts as either an Entity or a Name for Display purposes based on what it holds. 
+/// Acts as either an Entity or a Name for Display purposes based on what it holds.
 /// Otherwise acts as an Entity for any other purpose.
 #[derive(Debug, Clone)]
 pub enum EntityIdentifier {
@@ -40,7 +40,7 @@ impl Into<bevy::prelude::Entity> for EntityIdentifier {
 
 impl core::ops::Deref for EntityIdentifier {
     type Target = bevy::prelude::Entity;
-    
+
     fn deref(&self) -> &Self::Target {
         match self {
             Self::Entity(e) => e,
@@ -53,7 +53,7 @@ impl core::fmt::Display for EntityIdentifier {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::Entity(e) => e.fmt(f),
-            Self::EntityAndName(_, s) => s.fmt(f)
+            Self::EntityAndName(_, s) => s.fmt(f),
         }
     }
 }
@@ -62,7 +62,7 @@ impl core::hash::Hash for EntityIdentifier {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         match self {
             Self::Entity(e) => e.hash(state),
-            Self::EntityAndName(e, _) => e.hash(state)
+            Self::EntityAndName(e, _) => e.hash(state),
         }
     }
 }

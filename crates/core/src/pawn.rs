@@ -1,13 +1,13 @@
-/* 
-This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-If a copy of the MPL was not distributed with this file, 
-You can obtain one at https://mozilla.org/MPL/2.0/. 
+/*
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+If a copy of the MPL was not distributed with this file,
+You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
 //! Pawns - the thing that an AI drives; an NPC, a crowd, a faction, anything.
 
-use bevy::prelude::*;
 use crate::types::{PawnEntity, PawnEntityRef};
+use bevy::prelude::*;
 
 // An AIController on its own is just a jumped-up abstract decision process.
 // To get actual NPCs, it needs to 'drive' another Entity - that Entity is the AI's Pawn.
@@ -32,14 +32,14 @@ impl Pawn {
     pub fn as_entity(&self) -> Option<&PawnEntity> {
         match &self.0 {
             None => None,
-            Some(pawn_id) => Some(pawn_id)
+            Some(pawn_id) => Some(pawn_id),
         }
     }
 
     pub fn to_entity(self) -> Option<PawnEntity> {
         match self.0 {
             None => None,
-            Some(pawn_id) => Some(pawn_id)
+            Some(pawn_id) => Some(pawn_id),
         }
     }
 }
