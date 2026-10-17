@@ -4,6 +4,7 @@
 - Commit: `ac2c36e0eb176742b4f6f3380d4fd4fa1e6a432b`
 - Version: 0.3.0, Bevy 0.19
 - License: MPL-2.0, retained in `LICENSE.md` and source headers.
+- Published (as the game ships it): https://github.com/evanSe/Cranium/tree/habet
 
 Habet uses the native plugin, registered context fetchers, considerations, curves,
 action handlers and action trackers. The library is vendored to make these fixes
