@@ -36,7 +36,7 @@ You can obtain one at https://mozilla.org/MPL/2.0/.
 //! 3) The `SupportedUtilityCurve` enum which holds all built-in Utility Curves - those are a curated
 //!    selection of building blocks that should cover the majority of your needs. They are also slightly
 //!    more performant due to the lack of an Arc<T> overhead and a secondary registry lookup.
-//! 4) The methods of UtilityCurveExt - if you are planning to create custom Utility Curves, this  
+//! 4) The methods of UtilityCurveExt - if you are planning to create custom Utility Curves, this
 //!    trait provides constructors for various transforms that are still valid as Utility Curves.
 use crate::types::{ActionScore, CraniumKvMap, MAX_CONSIDERATION_SCORE, MIN_CONSIDERATION_SCORE};
 use bevy::math::{self, Curve, curve::CurveExt, curve::Interval};
@@ -236,8 +236,8 @@ impl UtilityCurve for UtilityBinaryCurve {}
 /// decay towards the halfway point before bouncing back at the same rate afterwards.
 ///
 /// This can be used to model Considerations where the optimal values are somewhere
-/// in the middle (e.g. a slow AoE Attacker scoring areas by enemy count - too few   
-/// targets is not worth the bother, too many and we'll get overrun) by using an  
+/// in the middle (e.g. a slow AoE Attacker scoring areas by enemy count - too few
+/// targets is not worth the bother, too many and we'll get overrun) by using an
 /// *increasing* Curve function as a base.
 ///
 /// Conversely we can use a *decreasing* base to model scenarios where the optimal

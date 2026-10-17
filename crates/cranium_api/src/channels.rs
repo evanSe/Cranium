@@ -318,9 +318,9 @@ pub(crate) fn decision_requested_msg_handler<I: HostIdType + 'static>(
         .get(&msg.target)
         .or_else(|| {
             #[cfg(feature = "logging")]
-            log::error!("Decision requested for an unrecognized/untracked Entity! MsgId: {:?} | RqKey: {:?} | HostId: {:?}", 
-                msg_id, 
-                msg.request_key, 
+            log::error!("Decision requested for an unrecognized/untracked Entity! MsgId: {:?} | RqKey: {:?} | HostId: {:?}",
+                msg_id,
+                msg.request_key,
                 msg.target
             );
             failure_messages.write(NoDecisionMessage {
@@ -336,12 +336,12 @@ pub(crate) fn decision_requested_msg_handler<I: HostIdType + 'static>(
                 .map(|so_data| so_data)
                 .ok()
             ;
-            
+
             match smart_objects {
                 Some(sos) => {
                     #[cfg(feature = "logging")]
                     log::debug!(
-                        "Triggered a Decision request for Entity {} with {} SmartObject ActionSets.", 
+                        "Triggered a Decision request for Entity {} with {} SmartObject ActionSets.",
                         local_entity,
                         sos.actionset_refs.len()
                     );
@@ -355,7 +355,7 @@ pub(crate) fn decision_requested_msg_handler<I: HostIdType + 'static>(
                 None => {
                     #[cfg(feature = "logging")]
                     log::debug!(
-                        "Ignored a Decision request for Entity {} - no SmartObjects available.", 
+                        "Ignored a Decision request for Entity {} - no SmartObjects available.",
                         local_entity,
                     );
                     failure_messages.write(NoDecisionMessage {
@@ -421,7 +421,7 @@ impl<I: HostIdType + 'static> HostActionIdMap<I> {
                 log::warn!(
                     "HostActionIdMap insert of HostId '{:?}'->'{:?}' is overwriting a previous ActionKey mapping '{:?}'",
                     arc_host_id.as_ref(),
-                    arc_action_key.as_ref(), 
+                    arc_action_key.as_ref(),
                     old,
                 )
             }
@@ -454,10 +454,10 @@ pub fn decision_output_handler<I: HostIdType + 'static + Into<NativeHostIdType>>
         #[cfg(feature = "logging")]
         log::error!(
             "decision_output_handler - failed to locate a HostMapped component on the AiActionPicked Target {:?}.
-            Error: '{}'.  
+            Error: '{}'.
             ActionChosen message will not be send due to invariant violation. ",
             tgt,
-            err, 
+            err,
         )
     });
 
@@ -466,11 +466,11 @@ pub fn decision_output_handler<I: HostIdType + 'static + Into<NativeHostIdType>>
     }).map_err(|err| {
         #[cfg(feature = "logging")]
         log::error!(
-            "decision_output_handler - failed to locate a HostMapped component on the AiActionPicked Context {:?}. 
-            Error: '{}'. 
+            "decision_output_handler - failed to locate a HostMapped component on the AiActionPicked Context {:?}.
+            Error: '{}'.
             ActionChosen message will not be send due to invariant violation. ",
             trigger.action_context,
-            err, 
+            err,
         )
     });
 
@@ -479,7 +479,7 @@ pub fn decision_output_handler<I: HostIdType + 'static + Into<NativeHostIdType>>
         .or_else(|| {
             #[cfg(feature = "logging")]
             log::error!(
-            "decision_output_handler - failed to match a HostId for an AiActionPicked Action {:?}. 
+            "decision_output_handler - failed to match a HostId for an AiActionPicked Action {:?}.
             ActionChosen message will not be send due to invariant violation. ",
             &trigger.action_key,
         );
@@ -521,23 +521,23 @@ pub fn decision_failed_handler<I: HostIdType + 'static + Into<NativeHostIdType>>
             None => {
                 #[cfg(feature = "logging")]
                 log::error!(
-                    "No known Entity for RequestKey {:?}; cannot send a valid NoActionChosen message!", 
+                    "No known Entity for RequestKey {:?}; cannot send a valid NoActionChosen message!",
                     msg.request_key
                 );
                 None
             },
-            
+
             Some(host_mapped_agent_id) => match host_mapped_agent_id {
                 Err(e) => {
-                    // This is an edge-case scenario, where either the Entity got despawned between operations, 
+                    // This is an edge-case scenario, where either the Entity got despawned between operations,
                     // or where the HostMapped component got corrupted somehow (e.g. another command removed it).
 
-                    // TODO: Consider emitting an alternative message type for such cases to provide SOME feedback 
+                    // TODO: Consider emitting an alternative message type for such cases to provide SOME feedback
                     //       to callers even in a weird scenario like this.
 
                     #[cfg(feature = "logging")]
                     log::error!(
-                        "Failed to resolve Entity {:?} to HostId for RequestKey {:?}; cannot send a valid NoActionChosen message! Error: {}", 
+                        "Failed to resolve Entity {:?} to HostId for RequestKey {:?}; cannot send a valid NoActionChosen message! Error: {}",
                         msg.entity,
                         msg.request_key,
                         e
@@ -548,8 +548,8 @@ pub fn decision_failed_handler<I: HostIdType + 'static + Into<NativeHostIdType>>
                 Ok(host_id) => {
                     Some(
                         QueuedApiOutMessage(
-                            StagedApiOutMsg::NoActionChosen { 
-                                host_agent_id: host_id.into(), 
+                            StagedApiOutMsg::NoActionChosen {
+                                host_agent_id: host_id.into(),
                                 request_key: msg.request_key.unwrap_or_default(),
                                 comment: msg.comment.map(|m| Arc::new(m.to_string())),
                             },
@@ -557,7 +557,7 @@ pub fn decision_failed_handler<I: HostIdType + 'static + Into<NativeHostIdType>>
                     )
                 }
             }
-            
+
         }
     })
     ;

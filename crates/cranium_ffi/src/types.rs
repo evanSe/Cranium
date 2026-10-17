@@ -51,7 +51,7 @@ pub type FFIDespawnRequestBatch<T> = FFIVec<FFIDespawnRequest<T>>;
 ///
 /// Because of this restriction, the function is unsafe - failing to
 /// ensure the input is nul-terminated will result in a panic!
-///  
+///
 /// Primarily intended as a convenience for testing FFI calls from Rust
 /// because it's a pretty gnarly piece of boilerplate in those scenarios.
 pub unsafe fn ffi_raw_string_from_str_unchecked(inp: &str) -> FFIRawString {
@@ -69,7 +69,7 @@ pub unsafe fn ffi_raw_string_from_str_unchecked(inp: &str) -> FFIRawString {
 }
 
 /// Turns a normal Rust &str into Cranium's FFI-friendly representation.
-///  
+///
 /// Primarily intended as a convenience for testing FFI calls from Rust
 /// because it's a pretty gnarly piece of boilerplate in those scenarios.
 pub fn ffi_raw_string_from_str(inp: &str) -> FFISafeOutString {

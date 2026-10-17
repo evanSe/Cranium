@@ -104,7 +104,7 @@ impl NoCurveMatchStrategyConfig {
         self.set(NoCurveMatchStrategy::panic())
     }
 
-    /// Configures the app to ignore the Consideration and log a warning   
+    /// Configures the app to ignore the Consideration and log a warning
     /// if its associated Curve key cannot be resolved to a Curve.
     ///
     /// **WARNING**: This is generally **NOT** recommended as it is roughly
@@ -115,8 +115,8 @@ impl NoCurveMatchStrategyConfig {
         self.set(NoCurveMatchStrategy::skip_consideration())
     }
 
-    /// Configures the app to discard the whole Action and log a warning   
-    /// if any of its Considerations' associated Curve keys cannot be  
+    /// Configures the app to discard the whole Action and log a warning
+    /// if any of its Considerations' associated Curve keys cannot be
     /// resolved to a Curve.
     ///
     /// This means any buggy Actions effectively get disabled; this means
@@ -155,7 +155,7 @@ impl NoCurveMatchStrategyConfig {
     }
 
     /// Configures the app to select a fallback Curve using the
-    /// provided (`'static`!) mapping function if a Curve key cannot  
+    /// provided (`'static`!) mapping function if a Curve key cannot
     /// be resolves to a Curve without logging a warning.
     ///
     /// This allows for graceful recovery in case of AI designer error,

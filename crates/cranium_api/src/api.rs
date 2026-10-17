@@ -402,11 +402,11 @@ pub extern "C" fn cranium_write_ping() -> bool {
 // to add in `paste` as a dependency and I kind of like the explicitness.
 macro_rules! impl_ffi_methods_for_type {
     (
-        $spawn_name:ident, 
-        $despawn_name:ident, 
-        $spawn_batch_name:ident, 
-        $despawn_batch_name:ident, 
-        $decision_name:ident, 
+        $spawn_name:ident,
+        $despawn_name:ident,
+        $spawn_batch_name:ident,
+        $despawn_batch_name:ident,
+        $decision_name:ident,
         $ty:ty
     ) => {
         #[unsafe(no_mangle)]

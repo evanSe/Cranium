@@ -237,10 +237,6 @@ pub fn decision_engine(
     // as it cannot possibly beat the current best.
     let mut best_scoring_triple: Option<(ActionScore, ActionTemplateRef, ActionContextRef)> = None;
 
-    // Best score reached for this ActionTemplate
-    // This is a bit more 'local' than the per-AI score
-    let mut best_scoring_template: Option<(ActionTemplateRef, ActionScore)> = None;
-
     let maybe_smartobjects = &event.smart_objects;
     let maybe_pawn = pawn_query.get(audience).ok().flatten().cloned();
 
@@ -298,6 +294,9 @@ pub fn decision_engine(
 
     // 2. Emit a request for Context for each ActionTemplate.
     for action_template in available_actions {
+        // Habet fix: raw products are comparable only within this template.
+        // Other templates can have different priorities and consideration counts.
+        let mut best_scoring_template: Option<(ActionTemplateRef, ActionScore)> = None;
         if abort_processing.is_some() {
             // abort_processing functions as a flag to abandon this run entirely
             break;
@@ -608,9 +607,9 @@ pub fn decision_engine(
                             false => {
                                 #[cfg(feature = "logging")]
                                 bevy::log::error!(
-                                    "Min/Max values for Consideration {:?} in Action {:?} 
-                                    were flipped, min={:?} > max={:?}. 
-                                    They have been flipped back so Min<=Max for you for now. 
+                                    "Min/Max values for Consideration {:?} in Action {:?}
+                                    were flipped, min={:?} > max={:?}.
+                                    They have been flipped back so Min<=Max for you for now.
                                     This fixup is not guaranteed to be in place in future versions of the library!",
                                     cons.consideration_name,
                                     &action_template.name,
@@ -625,10 +624,10 @@ pub fn decision_engine(
                         if true_span == 0. {
                             #[cfg(feature = "logging")]
                             bevy::log::warn!(
-                                "Min/Max values for Consideration {:?} in Action {:?} 
-                                are both zero! min={:?}, max={:?}. 
-                                This would result in a division-by-zero and will instead be  
-                                interpreted as a disabled Consideration and ignored. If you did not  
+                                "Min/Max values for Consideration {:?} in Action {:?}
+                                are both zero! min={:?}, max={:?}.
+                                This would result in a division-by-zero and will instead be
+                                interpreted as a disabled Consideration and ignored. If you did not
                                 expect both values to be zero, you should investigate the Action spec.",
                                 cons.consideration_name,
                                 &action_template.name,
@@ -653,7 +652,7 @@ pub fn decision_engine(
 
                         #[cfg(feature = "logging")]
                         bevy::log::debug!(
-                            "decision_engine: AI {:?} - Consideration '{:}' for Action {:?}:  
+                            "decision_engine: AI {:?} - Consideration '{:}' for Action {:?}:
                             - Raw score => {:?}
                             - Rescaled w/ min/max => {:?}
                             - Adjusted w/ Curve {:?} => {:?}

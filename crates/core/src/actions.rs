@@ -14,7 +14,7 @@ You can obtain one at https://mozilla.org/MPL/2.0/.
 //! to run some code that will implement it properly (with hooks to signal when it's done running).
 //!
 //! The second caveat is that we are not necessarily only talking about individual NPCs!
-//!  
+//!
 //! A single AI can be the 'brain' of a single NPC, but we can also have 'Commander' AIs
 //! driving whole teams or crowds, 'Director' AIs whose target (Pawn) is 'the game world'
 //! (e.g. running spawners, or coordinating other AIs goals to drive story progression),

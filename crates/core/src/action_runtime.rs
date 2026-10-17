@@ -146,7 +146,7 @@ pub struct ActionTrackerTickTimer {
 
 /// An 'extension' Component for ActionTracker Bundles.
 ///
-/// Indicates that this tracker should be processed by a System that   
+/// Indicates that this tracker should be processed by a System that
 /// runs some sort of 'tick' logic for the associated Action.
 ///
 /// For example, a MoveTo<pos> Action might move a unit by one grid square,
@@ -435,10 +435,25 @@ pub struct ActionTrackerDespawnRequested {
 pub fn actiontracker_triggered_despawner(
     event: On<ActionTrackerDespawnRequested>,
     mut commands: Commands,
+    controllers: Query<(), With<crate::ai::AIController>>,
 ) {
-    let _ = commands
-        .get_entity(event.entity)
-        .and_then(|mut e| Ok(e.despawn()));
+    if let Ok(mut entity) = commands.get_entity(event.entity) {
+        // The native spawner puts trackers ON the AI, not on a separate entity.
+        // Completing a task must not destroy that controller and its knowledge.
+        if controllers.contains(event.entity) {
+            entity.remove::<(
+                ActionTracker,
+                ActionTrackerState,
+                ActionTrackerOwningAI,
+                ActionTrackerCreationTimer,
+                ActionTrackerRuntimeTimer,
+                ActionTrackerTickTimer,
+                ActionTrackerTicks,
+            )>();
+        } else {
+            entity.despawn();
+        }
+    }
 }
 
 pub fn actiontracker_done_cleanup_system(

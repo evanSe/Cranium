@@ -1,13 +1,13 @@
-/* 
-This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-If a copy of the MPL was not distributed with this file, 
-You can obtain one at https://mozilla.org/MPL/2.0/. 
+/*
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+If a copy of the MPL was not distributed with this file,
+You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 use bevy::prelude::*;
 use crate::ai::*;
 use crate::memories::{Memories};
 
-// An AI 
+// An AI
 #[derive(Component)]
 struct Senses(crate::types::CraniumList<Box<dyn Sense>>);
 
@@ -23,7 +23,7 @@ struct VisionSense {
 impl Sense for VisionSense {
     fn update(&self, memories: &mut Memories, world: &World) {
         // Query visible entities and update memories
-        
+
     }
 }
 

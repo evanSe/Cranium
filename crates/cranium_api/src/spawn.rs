@@ -118,25 +118,25 @@ pub fn process_remote_spawn_entity_request<I: HostIdType + 'static>(
         // However, this is broken down into three logical steps for better legibility.
         #[cfg(feature = "logging")]
         log::debug!(
-            "Processing an Entity Spawn Request (RqID: {}, HostId: {:?})...", 
+            "Processing an Entity Spawn Request (RqID: {}, HostId: {:?})...",
             request_id,
             request.host_id,
         );
 
         // (1) Deserialize: request payload -> specmap (component key : fields)
-        let parsed: Option<HostSpawnRequestParams> = 
+        let parsed: Option<HostSpawnRequestParams> =
             serde_json::from_str(&request.payload)
             .map_err(|err| {
                 #[cfg(feature = "logging")]
                 log::error!(
-                    "Error parsing Cranium Entity Spawn Request (RqID: {}, HostId: {:?}, Msg: '{}') - {}", 
-                    request_id, 
-                    request.host_id, 
+                    "Error parsing Cranium Entity Spawn Request (RqID: {}, HostId: {:?}, Msg: '{}') - {}",
+                    request_id,
+                    request.host_id,
                     request.payload,
                     err,
                 );
-                error_response_stream.write(HostSpawnResponseErrorMsg { 
-                    error: Arc::new(format!("{:?}\0", err).to_string()), 
+                error_response_stream.write(HostSpawnResponseErrorMsg {
+                    error: Arc::new(format!("{:?}\0", err).to_string()),
                     host_id: request.host_id.clone(),
                     request_key: request.request_key.clone(),
                 });
@@ -150,16 +150,16 @@ pub fn process_remote_spawn_entity_request<I: HostIdType + 'static>(
             deserialize_components(&type_registry, comp)
             .map_err(|e| {
                 #[cfg(feature = "logging")]
-                log::error!("Error deserializing Components from a Spawn API request (RqID: {}, HostId: {:?}): {:?}", request_id, request.host_id, e); 
-                error_response_stream.write(HostSpawnResponseErrorMsg { 
-                    error: Arc::new(format!("{:?}\0", e)), 
-                    host_id: request.host_id.clone(), 
-                    request_key: request.request_key.clone(), 
+                log::error!("Error deserializing Components from a Spawn API request (RqID: {}, HostId: {:?}): {:?}", request_id, request.host_id, e);
+                error_response_stream.write(HostSpawnResponseErrorMsg {
+                    error: Arc::new(format!("{:?}\0", e)),
+                    host_id: request.host_id.clone(),
+                    request_key: request.request_key.clone(),
                 });
             })
             .ok()
         });
-        
+
         // (3) Insert the reflected Components to the Entity and notify success (hopefully)
         let msg = reflected.and_then(|reflect_components| {
             let host_id = Some(&request.host_id);
@@ -176,7 +176,7 @@ pub fn process_remote_spawn_entity_request<I: HostIdType + 'static>(
                         #[cfg(feature = "logging")]
                         log::error!("Invalid Entity {} (HostId: {:?}) retrieved from the HostIdToEntityRegistry - {}", e, request.host_id, err);
                         err
-                    }, 
+                    },
                 )
             };
 
@@ -192,20 +192,20 @@ pub fn process_remote_spawn_entity_request<I: HostIdType + 'static>(
 
                 entity.insert_if_new(
                     HostMapped::from_value_at_time(
-                        host_id.unwrap().clone(), 
+                        host_id.unwrap().clone(),
                         Some(real_timer.elapsed_wrapped())
                     )
                 );
             }
-            
+
             insert_reflected_components(entity, reflect_components)
             .map_err(|e| {
                 match is_update {
                     true => {
                         #[cfg(feature = "logging")]
                         log::error!(
-                            "Error updating Components from a Spawn API request (RqID: {}, HostId {:?}): {:?}", 
-                            request_id, 
+                            "Error updating Components from a Spawn API request (RqID: {}, HostId {:?}): {:?}",
+                            request_id,
                             request.host_id,
                             e
                         )
@@ -213,15 +213,15 @@ pub fn process_remote_spawn_entity_request<I: HostIdType + 'static>(
                     false => {
                         #[cfg(feature = "logging")]
                         log::error!(
-                            "Error inserting Components from a Spawn API request (RqID: {}, HostId {:?}): {:?}", 
-                            request_id, 
+                            "Error inserting Components from a Spawn API request (RqID: {}, HostId {:?}): {:?}",
+                            request_id,
                             request.host_id,
                             e
                         )
                     }
                 }
-                error_response_stream.write(HostSpawnResponseErrorMsg { 
-                    error: Arc::new(format!("{:?}\0", e)), 
+                error_response_stream.write(HostSpawnResponseErrorMsg {
+                    error: Arc::new(format!("{:?}\0", e)),
                     host_id: request.host_id.clone(),
                     request_key: request.request_key.clone(),
                 });
@@ -232,8 +232,8 @@ pub fn process_remote_spawn_entity_request<I: HostIdType + 'static>(
                     false => {
                         #[cfg(feature = "logging")]
                         log::debug!(
-                            "Successfully spawned an Entity ({}, HostId {:?}) with Components based on Spawn request (RqID: {})", 
-                            entity_id, 
+                            "Successfully spawned an Entity ({}, HostId {:?}) with Components based on Spawn request (RqID: {})",
+                            entity_id,
                             request.host_id,
                             request_id,
                         )
@@ -241,17 +241,17 @@ pub fn process_remote_spawn_entity_request<I: HostIdType + 'static>(
                     true => {
                         #[cfg(feature = "logging")]
                         log::debug!(
-                            "Successfully updated an Entity ({}, HostId {:?}) with Components based on Spawn request (RqID: {})", 
-                            entity_id, 
+                            "Successfully updated an Entity ({}, HostId {:?}) with Components based on Spawn request (RqID: {})",
+                            entity_id,
                             request.host_id,
                             request_id,
                         )
                     }
                 }
-                
+
                 Some(HostSpawnResponseSuccessMsg {
-                    entity: entity_id, 
-                    host_id: request.host_id.clone(), 
+                    entity: entity_id,
+                    host_id: request.host_id.clone(),
                     comments: None,
                     request_key: request.request_key.clone(),
                 })
@@ -375,7 +375,7 @@ pub(crate) fn host_entity_removal_executor<T: HostIdType + 'static>(
         // Despawn the Entity proper.
         let entity_match = commands
         .get_entity(msg.entity)
-        .map(|mut ecmd| { 
+        .map(|mut ecmd| {
             ecmd.despawn()
         });
 

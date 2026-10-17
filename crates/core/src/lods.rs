@@ -55,7 +55,7 @@ use crate::types::AiLodLevelPrimitive;
 /// Absolutely everything that runs at full precision should run, nothing is approximated for this AI.
 pub const LOD_ELEVATED: AiLodLevelPrimitive = AiLodLevelPrimitive::MIN; // i.e. 0u8
 
-/// The usual mode of operation of an NPC near the player.  
+/// The usual mode of operation of an NPC near the player.
 pub const LOD_NORMAL: AiLodLevelPrimitive = AiLodLevelPrimitive::MIN + 8; // i.e. 8u8
 
 /// The lowest level of detail possible before the AI doesn't run at all.
