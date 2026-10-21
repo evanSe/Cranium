@@ -19,6 +19,11 @@ reviewable and keep all native crates at the same revision:
 3. Register the `NoDecisionMessage` channel used by the native decision engine.
 4. Enable the native trigger-dispatch observer so registered action handlers receive
    selected actions. Upstream left this observer commented out.
+5. Leave a consideration on a yes/no curve (`AtLeast`, `LessThan`, `Equals`,
+   `NotEquals`; `SupportedUtilityCurve::is_gate`) out of the count behind the
+   consideration makeup. A gate passes a score at 1.0 or zeroes it; counting it
+   raised every passing score, so adding Habet's `habet::eligible` gate would
+   have reweighed every choice.
 
 The vendored Rust source and examples are formatted with the workspace's rustfmt;
 trailing whitespace in upstream API macros was removed to allow `cargo fmt --all`.

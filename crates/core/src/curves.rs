@@ -939,6 +939,18 @@ impl Curve<ActionScore> for SupportedUtilityCurve {
 
 impl UtilityCurve for SupportedUtilityCurve {}
 
+impl SupportedUtilityCurve {
+    /// A yes/no curve: a gate on the action rather than a graded factor.
+    /// Habet fix: a gate passes a score through at 1.0 or zeroes it, so it
+    /// earns no share of the consideration makeup (`decision_loop`).
+    pub fn is_gate(&self) -> bool {
+        matches!(
+            self,
+            Self::AtLeast(_) | Self::LessThan(_) | Self::Equals(_) | Self::NotEquals(_)
+        )
+    }
+}
+
 impl TryFrom<&str> for SupportedUtilityCurve {
     type Error = ();
 

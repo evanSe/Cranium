@@ -428,6 +428,8 @@ pub fn decision_engine(
             // The current total score for this AI + Action
             let mut curr_score = types::MAX_CONSIDERATION_SCORE;
             let mut consideration_count: usize = 0;
+            // Habet fix: gates (yes/no curves) are not counted toward the makeup.
+            let mut gates: usize = 0;
 
             for (cons_cnt, cons) in action_template.considerations.iter().enumerate() {
                 // We'll use the Registry resource if we have one and fall back to the hardcoded pool if we do not.
@@ -519,6 +521,7 @@ pub fn decision_engine(
 
                 // We can safely unwrap this as any handling/panicking has been done earlier.
                 let resolved_curve = maybe_resolved_curve.unwrap();
+                let gate = resolved_curve.is_gate();
 
                 let consideration_system = consideration_system_map
                     .mapping
@@ -692,6 +695,7 @@ pub fn decision_engine(
                         // We need to know how many Considerations we have processed for later.
                         // Enumerate starts at zero, so we need to add one to adjust.
                         consideration_count = cons_cnt + 1;
+                        gates += usize::from(gate);
                     }
                 }
             }
@@ -711,7 +715,7 @@ pub fn decision_engine(
                     .insert((action_template.to_owned(), curr_score.to_owned()));
             }
 
-            let adjusted_score = consideration_adjustment(curr_score, consideration_count);
+            let adjusted_score = consideration_adjustment(curr_score, consideration_count - gates);
 
             // todo: add a parametrizeable amount of randomness for break-evens
             let prioritized_score = adjusted_score * action_template.priority;
